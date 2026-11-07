@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbyoUI0Cy2uPK0JHvLyeYxKUBGkkJFQEsIy_roZ73nfZCJtMezV4-8MT5JnWUQ_DGZHb9w/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyHtGVPwfVmwtT9qumO-kHRs9Amfhvhn26_dKF5BEpyyNDRXw1vsKjF3hPWnAU00-hp/exec";
 
 let allItems = [];
 
@@ -7,6 +7,7 @@ function jsonp(params) {
     const callbackName = "amzCallback_" + Date.now();
 
     const script = document.createElement("script");
+
     const query = new URLSearchParams({
       ...params,
       callback: callbackName
@@ -126,8 +127,62 @@ function renderTable() {
 
     statusCell.appendChild(badge);
     tr.appendChild(statusCell);
+
+    // DONE BUTTON
+    const actionCell = document.createElement("td");
+    const doneButton = document.createElement("button");
+
+    doneButton.type = "button";
+    doneButton.className = "done-btn";
+    doneButton.textContent = "Done";
+
+    doneButton.addEventListener("click", () => {
+      confirmDone(item.rowNumber, item.barcode, doneButton);
+    });
+
+    actionCell.appendChild(doneButton);
+    tr.appendChild(actionCell);
+
     tbody.appendChild(tr);
   });
+}
+
+async function confirmDone(rowNumber, barcode, button) {
+  if (!rowNumber) {
+    alert("Product row number missing. Please refresh the page.");
+    return;
+  }
+
+  const confirmed = window.confirm(
+    "Are you sure this product has been removed from the store?\n\nBarcode: " +
+    barcode
+  );
+
+  if (!confirmed) return;
+
+  button.disabled = true;
+  button.textContent = "Processing...";
+
+  try {
+    const result = await jsonp({
+      action: "markDone",
+      row: rowNumber
+    });
+
+    if (!result.success) {
+      throw new Error(result.message || "Unable to mark product as DONE.");
+    }
+
+    await loadData();
+
+    alert("Product marked as DONE successfully!");
+
+  } catch (err) {
+    button.disabled = false;
+    button.textContent = "Done";
+
+    alert("Error: " + err.message);
+  }
 }
 
 async function submitExpiry(event) {
@@ -149,7 +204,9 @@ async function submitExpiry(event) {
       scanner: document.getElementById("scannerInput")?.value.trim() || ""
     });
 
-    if (!result.success) throw new Error(result.message);
+    if (!result.success) {
+      throw new Error(result.message || "Unable to save product.");
+    }
 
     message.textContent = "Product saved successfully!";
     form.reset();
