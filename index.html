@@ -88,6 +88,22 @@
       cursor: not-allowed;
     }
 
+    .done-btn {
+      background: #168653;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 7px 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .done-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     #formMessage {
       font-size: 14px;
       margin: 12px 0 0;
@@ -163,13 +179,10 @@
       </div>
     </div>
 
-    <!-- ADD EXPIRY FORM -->
     <section id="expiryFormPanel" class="expiry-form" hidden>
-
       <h3>Add New Expiry Product</h3>
 
       <form id="expiryForm">
-
         <div class="form-grid">
 
           <div class="form-field">
@@ -183,10 +196,7 @@
 
           <div class="form-field">
             <label for="expiryInput">Expiry Date</label>
-            <input
-              type="date"
-              id="expiryInput"
-              required>
+            <input type="date" id="expiryInput" required>
           </div>
 
           <div class="form-field">
@@ -220,7 +230,6 @@
         </button>
 
         <p id="formMessage"></p>
-
       </form>
     </section>
 
@@ -229,8 +238,7 @@
         type="search"
         id="searchInput"
         placeholder="Search barcode..."
-        oninput="renderTable()"
-      >
+        oninput="renderTable()">
 
       <select id="statusFilter" onchange="renderTable()">
         <option value="ALL">All Status</option>
@@ -254,6 +262,7 @@
             <th>Remove Date</th>
             <th>Days Left</th>
             <th>Status</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
