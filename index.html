@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#00aab9">
+  <title>AMZ Expiry Management</title>
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    [hidden] {
+      display: none !important;
+    }
+
+    .panel-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .add-expiry-btn {
+      background: #00aab9;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .expiry-form {
+      background: #f7fbfc;
+      border: 1px solid #dcebed;
+      border-radius: 12px;
+      padding: 18px;
+      margin: 18px 0;
+    }
+
+    .expiry-form h3 {
+      margin: 0 0 15px;
+      color: #173b40;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .form-field label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #36575b;
+    }
+
+    .form-field input,
+    .form-field select {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px;
+      border: 1px solid #cbdfe1;
+      border-radius: 8px;
+      background: white;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .save-expiry-btn {
+      margin-top: 16px;
+      background: #00aab9;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 22px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .save-expiry-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #formMessage {
+      font-size: 14px;
+      margin: 12px 0 0;
+      font-weight: 600;
+    }
+
+    @media (max-width: 550px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="brand">
+    <div class="logo">AMZ</div>
+    <div>
+      <h2>Expiry Management</h2>
+      <p>Store Inventory Control</p>
+    </div>
+  </div>
+  <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
+</header>
+
+<main class="container">
+
+  <section class="dashboard">
+    <div class="stat-card">
+      <span>Total Items</span>
+      <strong id="total">0</strong>
+    </div>
+    <div class="stat-card safe">
+      <span>Safe</span>
+      <strong id="safe">0</strong>
+    </div>
+    <div class="stat-card warning">
+      <span>Warning</span>
+      <strong id="warning">0</strong>
+    </div>
+    <div class="stat-card urgent">
+      <span>Urgent</span>
+      <strong id="urgent">0</strong>
+    </div>
+    <div class="stat-card overdue">
+      <span>Overdue</span>
+      <strong id="overdue">0</strong>
+    </div>
+  </section>
+
+  <section class="panel">
+
+    <div class="panel-title">
+      <div>
+        <h3>Expiry Monitor</h3>
+        <p>Live product expiry tracking</p>
+      </div>
+
+      <div class="panel-actions">
+        <button
+          type="button"
+          class="add-expiry-btn"
+          id="toggleFormBtn"
+          onclick="toggleExpiryForm()">
+          + Add New Expiry
+        </button>
+
+        <button class="refresh-btn" onclick="loadData()">
+          Update
+        </button>
+      </div>
+    </div>
+
+    <!-- ADD EXPIRY FORM -->
+    <section id="expiryFormPanel" class="expiry-form" hidden>
+
+      <h3>Add New Expiry Product</h3>
+
+      <form id="expiryForm">
+
+        <div class="form-grid">
+
+          <div class="form-field">
+            <label for="barcodeInput">Product Barcode</label>
+            <input
+              type="text"
+              id="barcodeInput"
+              placeholder="Enter or scan barcode"
+              required>
+          </div>
+
+          <div class="form-field">
+            <label for="expiryInput">Expiry Date</label>
+            <input
+              type="date"
+              id="expiryInput"
+              required>
+          </div>
+
+          <div class="form-field">
+            <label for="beforeInput">Before Remove</label>
+            <select id="beforeInput" required>
+              <option value="2">2 Days</option>
+              <option value="3">3 Days</option>
+              <option value="5">5 Days</option>
+              <option value="7">7 Days</option>
+              <option value="15">15 Days</option>
+              <option value="30">30 Days</option>
+              <option value="45">45 Days</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label for="scannerInput">Scanner / Employee Name</label>
+            <input
+              type="text"
+              id="scannerInput"
+              placeholder="Enter your name">
+          </div>
+
+        </div>
+
+        <button
+          type="submit"
+          class="save-expiry-btn"
+          id="submitBtn">
+          Save Product
+        </button>
+
+        <p id="formMessage"></p>
+
+      </form>
+    </section>
+
+    <div class="toolbar">
+      <input
+        type="search"
+        id="searchInput"
+        placeholder="Search barcode..."
+        oninput="renderTable()"
+      >
+
+      <select id="statusFilter" onchange="renderTable()">
+        <option value="ALL">All Status</option>
+        <option value="SAFE">Safe</option>
+        <option value="WARNING">Warning</option>
+        <option value="URGENT">Urgent</option>
+        <option value="OVERDUE">Overdue</option>
+      </select>
+    </div>
+
+    <div id="loading" class="message">Loading data...</div>
+    <div id="error" class="error-message" hidden></div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Barcode</th>
+            <th>Expiry Date</th>
+            <th>Before Remove</th>
+            <th>Remove Date</th>
+            <th>Days Left</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <div id="empty" class="message" hidden>
+      No products found.
+    </div>
+
+  </section>
+
+</main>
+
+<footer>
+  AMZ EXPIRY MANAGEMENT
+  <p>Automatic Expiry Monitoring System</p>
+</footer>
+
+<script>
+  function toggleExpiryForm() {
+    const panel = document.getElementById("expiryFormPanel");
+    const button = document.getElementById("toggleFormBtn");
+
+    panel.hidden = !panel.hidden;
+
+    button.textContent = panel.hidden
+      ? "+ Add New Expiry"
+      : "✕ Close Form";
+  }
+</script>
+
+<script src="script.js"></script>
+
+</body>
+</html>
