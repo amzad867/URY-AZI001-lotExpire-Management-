@@ -291,3 +291,23 @@ footer p {
   white-space: nowrap;
 }
 .done-btn:hover { background: #00aab9; color: white; }
+
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-box {
+  background: white; border-radius: 14px; padding: 22px;
+  width: 100%; max-width: 360px;
+}
+.modal-box h3 { margin: 0 0 10px; color: #173b40; }
+.modal-box p { margin: 0 0 18px; color: #36575b; font-size: 14px; line-height: 1.5; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-actions button {
+  flex: 1; padding: 12px; border-radius: 8px; border: none;
+  font-weight: 700; font-size: 14px; cursor: pointer;
+}
+.modal-cancel { background: #e8eef0; color: #36575b; }
+.modal-ok { background: #00aab9; color: white; }
