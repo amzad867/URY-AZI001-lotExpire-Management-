@@ -279,3 +279,15 @@ footer p {
     width: 100%;
   }
 }
+
+.done-btn {
+  background: #e6f6f7;
+  color: #007b86;
+  border: 1px solid #00aab9;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.done-btn:hover { background: #00aab9; color: white; }

@@ -88,22 +88,6 @@
       cursor: not-allowed;
     }
 
-    .done-btn {
-      background: #168653;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 7px 12px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .done-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
     #formMessage {
       font-size: 14px;
       margin: 12px 0 0;
@@ -179,24 +163,30 @@
       </div>
     </div>
 
+    <!-- ADD EXPIRY FORM -->
     <section id="expiryFormPanel" class="expiry-form" hidden>
+
       <h3>Add New Expiry Product</h3>
 
       <form id="expiryForm">
+
         <div class="form-grid">
 
           <div class="form-field">
-            <label for="barcodeInput">Product Barcode</label>
+            <label for="barcodeInput">Product Item Number</label>
             <input
               type="text"
               id="barcodeInput"
-              placeholder="Enter or scan barcode"
+              placeholder="Enter or scan Item No"
               required>
           </div>
 
           <div class="form-field">
             <label for="expiryInput">Expiry Date</label>
-            <input type="date" id="expiryInput" required>
+            <input
+              type="date"
+              id="expiryInput"
+              required>
           </div>
 
           <div class="form-field">
@@ -206,6 +196,7 @@
               <option value="3">3 Days</option>
               <option value="5">5 Days</option>
               <option value="7">7 Days</option>
+              <option value="10">10 Days</option>
               <option value="15">15 Days</option>
               <option value="30">30 Days</option>
               <option value="45">45 Days</option>
@@ -230,6 +221,7 @@
         </button>
 
         <p id="formMessage"></p>
+
       </form>
     </section>
 
@@ -238,7 +230,13 @@
         type="search"
         id="searchInput"
         placeholder="Search barcode..."
-        oninput="renderTable()">
+        oninput="renderTable()"
+      >
+
+      <select id="viewFilter" onchange="renderTable()">
+        <option value="ACTIVE">Active</option>
+        <option value="DONE">Done (Archive)</option>
+      </select>
 
       <select id="statusFilter" onchange="renderTable()">
         <option value="ALL">All Status</option>

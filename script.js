@@ -1,13 +1,42 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbyHtGVPwfVmwtT9qumO-kHRs9Amfhvhn26_dKF5BEpyyNDRXw1vsKjF3hPWnAU00-hp/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyoUI0Cy2uPK0JHvLyeYxKUBGkkJFQEsIy_roZ73nfZCJtMezV4-8MT5JnWUQ_DGZHb9w/exec";
 
 let allItems = [];
+
+// ---- DONE / ARCHIVE (Google Sheet e save hoy, shob device e same) ----
+async function setDone(item, isDone) {
+  const error = document.getElementById("error");
+  if (error) error.hidden = true;
+
+  // Instant UI update, tarpor server e save
+  const before = item.done;
+  item.done = isDone;
+  updateDashboard();
+  renderTable();
+
+  try {
+    const result = await jsonp({
+      action: "done",
+      row: item.row,
+      barcode: item.barcode,
+      done: isDone ? "true" : "false"
+    });
+    if (!result.success) throw new Error(result.message);
+  } catch (err) {
+    item.done = before;
+    updateDashboard();
+    renderTable();
+    if (error) {
+      error.textContent = err.message;
+      error.hidden = false;
+    }
+  }
+}
 
 function jsonp(params) {
   return new Promise((resolve, reject) => {
     const callbackName = "amzCallback_" + Date.now();
 
     const script = document.createElement("script");
-
     const query = new URLSearchParams({
       ...params,
       callback: callbackName
@@ -53,7 +82,7 @@ async function loadData() {
 
     allItems = result.items || [];
 
-    updateDashboard(result);
+    updateDashboard();
     renderTable();
 
     if (loading) loading.hidden = true;
@@ -68,12 +97,15 @@ async function loadData() {
   }
 }
 
-function updateDashboard(data) {
-  document.getElementById("total").textContent = data.total ?? 0;
-  document.getElementById("safe").textContent = data.safe ?? 0;
-  document.getElementById("warning").textContent = data.warning ?? 0;
-  document.getElementById("urgent").textContent = data.urgent ?? 0;
-  document.getElementById("overdue").textContent = data.overdue ?? 0;
+function updateDashboard() {
+  const active = allItems.filter(i => !i.done);
+  const count = s => active.filter(i => i.status === s).length;
+
+  document.getElementById("total").textContent = active.length;
+  document.getElementById("safe").textContent = count("SAFE");
+  document.getElementById("warning").textContent = count("WARNING");
+  document.getElementById("urgent").textContent = count("URGENT");
+  document.getElementById("overdue").textContent = count("OVERDUE");
 }
 
 function renderTable() {
@@ -89,7 +121,12 @@ function renderTable() {
 
   tbody.innerHTML = "";
 
+  const view = document.getElementById("viewFilter")?.value || "ACTIVE";
   const filtered = allItems.filter(item => {
+    const isDone = !!item.done;
+    if (view === "ACTIVE" && isDone) return false;
+    if (view === "DONE" && !isDone) return false;
+
     const matchesSearch = String(item.barcode || "")
       .toLowerCase().includes(search);
 
@@ -128,61 +165,18 @@ function renderTable() {
     statusCell.appendChild(badge);
     tr.appendChild(statusCell);
 
-    // DONE BUTTON
     const actionCell = document.createElement("td");
-    const doneButton = document.createElement("button");
-
-    doneButton.type = "button";
-    doneButton.className = "done-btn";
-    doneButton.textContent = "Done";
-
-    doneButton.addEventListener("click", () => {
-      confirmDone(item.rowNumber, item.barcode, doneButton);
-    });
-
-    actionCell.appendChild(doneButton);
+    const btn = document.createElement("button");
+    const isDone = view === "DONE";
+    btn.type = "button";
+    btn.className = "done-btn";
+    btn.textContent = isDone ? "↩ Restore" : "✓ Done";
+    btn.onclick = () => setDone(item, !isDone);
+    actionCell.appendChild(btn);
     tr.appendChild(actionCell);
 
     tbody.appendChild(tr);
   });
-}
-
-async function confirmDone(rowNumber, barcode, button) {
-  if (!rowNumber) {
-    alert("Product row number missing. Please refresh the page.");
-    return;
-  }
-
-  const confirmed = window.confirm(
-    "Are you sure this product has been removed from the store?\n\nBarcode: " +
-    barcode
-  );
-
-  if (!confirmed) return;
-
-  button.disabled = true;
-  button.textContent = "Processing...";
-
-  try {
-    const result = await jsonp({
-      action: "markDone",
-      row: rowNumber
-    });
-
-    if (!result.success) {
-      throw new Error(result.message || "Unable to mark product as DONE.");
-    }
-
-    await loadData();
-
-    alert("Product marked as DONE successfully!");
-
-  } catch (err) {
-    button.disabled = false;
-    button.textContent = "Done";
-
-    alert("Error: " + err.message);
-  }
 }
 
 async function submitExpiry(event) {
@@ -204,9 +198,7 @@ async function submitExpiry(event) {
       scanner: document.getElementById("scannerInput")?.value.trim() || ""
     });
 
-    if (!result.success) {
-      throw new Error(result.message || "Unable to save product.");
-    }
+    if (!result.success) throw new Error(result.message);
 
     message.textContent = "Product saved successfully!";
     form.reset();
@@ -230,5 +222,8 @@ document.addEventListener("DOMContentLoaded", () => {
     ?.addEventListener("input", renderTable);
 
   document.getElementById("statusFilter")
+    ?.addEventListener("change", renderTable);
+
+  document.getElementById("viewFilter")
     ?.addEventListener("change", renderTable);
 });
