@@ -184,7 +184,18 @@ function renderTable() {
     btn.type = "button";
     btn.className = "done-btn";
     btn.textContent = isDone ? "↩ Restore" : "✓ Done";
-    btn.onclick = () => setDone(item, !isDone);
+    btn.onclick = () => {
+      if (!isDone) {
+        const ok = confirm(
+          "Eta Done korben?\n\n" +
+          "Barcode: " + item.barcode + "\n" +
+          "Expiry: " + item.expiry + "\n\n" +
+          "Done korle product ta list theke sore jabe."
+        );
+        if (!ok) return;
+      }
+      setDone(item, !isDone);
+    };
     actionCell.appendChild(btn);
     tr.appendChild(actionCell);
 
