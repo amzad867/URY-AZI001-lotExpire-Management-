@@ -1,15 +1,57 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbyHtGVPwfVmwtT9qumO-kHRs9Amfhvhn26_dKF5BEpyyNDRXw1vsKjF3hPWnAU00-hp/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyoUI0Cy2uPK0JHvLyeYxKUBGkkJFQEsIy_roZ73nfZCJtMezV4-8MT5JnWUQ_DGZHb9w/exec";
+
+// ---- DEVELOPER INFO (ekhane change koro) ----
+const DEVELOPER_NAME = "Amzad Hossain";          // <-- tomar nam
+const WHATSAPP_NUMBER = "966576571887";      // Saudi: 0576571887 -> 966576571887
+const WHATSAPP_MESSAGE = "Hello, I need help with AMZ Expiry Management";
 
 let allItems = [];
 
+function setupBranding() {
+  document.querySelectorAll(".dev-name").forEach(el => {
+    el.textContent = DEVELOPER_NAME;
+  });
+
+  const waUrl = "https://wa.me/" + WHATSAPP_NUMBER +
+    "?text=" + encodeURIComponent(WHATSAPP_MESSAGE);
+  document.querySelectorAll(".wa-link").forEach(a => {
+    a.href = waUrl;
+  });
+
+  // Welcome popup: ek session e ekbar
+  let seen = false;
+  try { seen = sessionStorage.getItem("amzWelcomeSeen") === "1"; } catch {}
+
+  if (!seen) {
+    const modal = document.getElementById("welcomeModal");
+    if (modal) modal.hidden = false;
+  }
+
+  document.getElementById("welcomeClose")?.addEventListener("click", () => {
+    document.getElementById("welcomeModal").hidden = true;
+    try { sessionStorage.setItem("amzWelcomeSeen", "1"); } catch {}
+  });
+}
+
 // ---- DONE / ARCHIVE (Google Sheet e save hoy, shob device e same) ----
-function askConfirm(item) {
+function askConfirm(item, isDone) {
   return new Promise(resolve => {
     const modal = document.getElementById("confirmModal");
+    const emailEl = document.getElementById("authEmail");
+    const pinEl = document.getElementById("authPin");
+    const errEl = document.getElementById("authError");
+
+    document.getElementById("confirmTitle").textContent =
+      isDone ? "Restore korben?" : "Done korben?";
     document.getElementById("confirmText").textContent =
-      "Barcode: " + item.barcode + "  |  Expiry: " + item.expiry +
-      ". Done korle product ta list theke sore jabe.";
+      "Barcode: " + item.barcode + "  |  Expiry: " + item.expiry;
+
+    try { emailEl.value = localStorage.getItem("amzEmail") || ""; }
+    catch { emailEl.value = ""; }
+    pinEl.value = "";
+    errEl.hidden = true;
     modal.hidden = false;
+    (emailEl.value ? pinEl : emailEl).focus();
 
     const close = result => {
       modal.hidden = true;
@@ -18,12 +60,25 @@ function askConfirm(item) {
       resolve(result);
     };
 
-    document.getElementById("confirmYes").onclick = () => close(true);
-    document.getElementById("confirmNo").onclick = () => close(false);
+    document.getElementById("confirmYes").onclick = () => {
+      const email = emailEl.value.trim();
+      const pin = pinEl.value.trim();
+
+      if (!email || !pin) {
+        errEl.textContent = "Email ar PIN duto-i dao.";
+        errEl.hidden = false;
+        return;
+      }
+
+      try { localStorage.setItem("amzEmail", email); } catch {}
+      close({ email, pin });
+    };
+
+    document.getElementById("confirmNo").onclick = () => close(null);
   });
 }
 
-async function setDone(item, isDone) {
+async function setDone(item, isDone, auth) {
   const error = document.getElementById("error");
   if (error) error.hidden = true;
 
@@ -46,6 +101,8 @@ async function setDone(item, isDone) {
       action: "done",
       row: item.row,
       barcode: item.barcode,
+      email: auth.email,
+      pin: auth.pin,
       done: isDone ? "true" : "false"
     });
     if (!result.success) throw new Error(result.message);
@@ -205,11 +262,9 @@ function renderTable() {
     btn.className = "done-btn";
     btn.textContent = isDone ? "↩ Restore" : "✓ Done";
     btn.onclick = async () => {
-      if (!isDone) {
-        const ok = await askConfirm(item);
-        if (!ok) return;
-      }
-      setDone(item, !isDone);
+      const auth = await askConfirm(item, isDone);
+      if (!auth) return;
+      setDone(item, !isDone, auth);
     };
     actionCell.appendChild(btn);
     tr.appendChild(actionCell);
@@ -252,6 +307,7 @@ async function submitExpiry(event) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  setupBranding();
   loadData();
 
   document.getElementById("expiryForm")
