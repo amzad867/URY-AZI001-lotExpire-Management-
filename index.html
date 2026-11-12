@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#00aab9">
   <title>AMZ Expiry Management</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=5">
 
   <style>
     [hidden] {
@@ -114,6 +114,18 @@
   </div>
   <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
 </header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <span class="hero-badge">Free Tool</span>
+    <h1>Welcome to AMZ Expiry Management</h1>
+    <p>Track product expiry dates, get early warnings, and remove items on time.</p>
+    <p class="hero-by">Developed by <strong class="dev-name"></strong></p>
+    <a class="wa-btn wa-link" target="_blank" rel="noopener">
+      <span>💬</span> Contact on WhatsApp
+    </a>
+  </div>
+</section>
 
 <main class="container">
 
@@ -278,6 +290,9 @@
 <footer>
   AMZ EXPIRY MANAGEMENT
   <p>Automatic Expiry Monitoring System</p>
+  <p>Developed by <strong class="dev-name"></strong> ·
+    <a class="wa-link footer-wa" target="_blank" rel="noopener">WhatsApp: 0576571887</a>
+  </p>
 </footer>
 
 <script>
@@ -293,18 +308,36 @@
   }
 </script>
 
-<script src="script.js?v=3"></script>
+<script src="script.js?v=5"></script>
 
 <div id="confirmModal" class="modal-overlay" hidden>
   <div class="modal-box">
-    <h3>Done korben?</h3>
+    <h3 id="confirmTitle">Done korben?</h3>
     <p id="confirmText"></p>
+    <input type="email" id="authEmail" class="auth-input" placeholder="Tomar email" autocomplete="email">
+    <input type="password" id="authPin" class="auth-input" placeholder="PIN" inputmode="numeric" autocomplete="off">
+    <p id="authError" class="auth-error" hidden></p>
     <div class="modal-actions">
       <button type="button" id="confirmNo" class="modal-cancel">Cancel</button>
       <button type="button" id="confirmYes" class="modal-ok">Yes, Done</button>
     </div>
   </div>
 </div>
+
+<div id="welcomeModal" class="modal-overlay" hidden>
+  <div class="modal-box welcome-box">
+    <div class="welcome-emoji">👋</div>
+    <h3>Welcome!</h3>
+    <p>This system was built by <strong class="dev-name"></strong>.<br>
+       Any question or help? Message me on WhatsApp.</p>
+    <a class="wa-btn wa-link" target="_blank" rel="noopener">
+      <span>💬</span> Chat on WhatsApp
+    </a>
+    <button type="button" id="welcomeClose" class="modal-ok welcome-continue">Continue</button>
+  </div>
+</div>
+
+<a class="wa-float wa-link" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
 
 </body>
 </html>
