@@ -3,6 +3,26 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyHtGVPwfVmwtT9qumO-kHR
 let allItems = [];
 
 // ---- DONE / ARCHIVE (Google Sheet e save hoy, shob device e same) ----
+function askConfirm(item) {
+  return new Promise(resolve => {
+    const modal = document.getElementById("confirmModal");
+    document.getElementById("confirmText").textContent =
+      "Barcode: " + item.barcode + "  |  Expiry: " + item.expiry +
+      ". Done korle product ta list theke sore jabe.";
+    modal.hidden = false;
+
+    const close = result => {
+      modal.hidden = true;
+      document.getElementById("confirmYes").onclick = null;
+      document.getElementById("confirmNo").onclick = null;
+      resolve(result);
+    };
+
+    document.getElementById("confirmYes").onclick = () => close(true);
+    document.getElementById("confirmNo").onclick = () => close(false);
+  });
+}
+
 async function setDone(item, isDone) {
   const error = document.getElementById("error");
   if (error) error.hidden = true;
@@ -184,14 +204,9 @@ function renderTable() {
     btn.type = "button";
     btn.className = "done-btn";
     btn.textContent = isDone ? "↩ Restore" : "✓ Done";
-    btn.onclick = () => {
+    btn.onclick = async () => {
       if (!isDone) {
-        const ok = confirm(
-          "Eta Done korben?\n\n" +
-          "Barcode: " + item.barcode + "\n" +
-          "Expiry: " + item.expiry + "\n\n" +
-          "Done korle product ta list theke sore jabe."
-        );
+        const ok = await askConfirm(item);
         if (!ok) return;
       }
       setDone(item, !isDone);
