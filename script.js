@@ -8,6 +8,14 @@ async function setDone(item, isDone) {
   if (error) error.hidden = true;
 
   // Instant UI update, tarpor server e save
+  if (!item.row) {
+    if (error) {
+      error.textContent = "Server purano version. Apps Script New version e Deploy koro, tarpor Refresh koro.";
+      error.hidden = false;
+    }
+    return;
+  }
+
   const before = item.done;
   item.done = isDone;
   updateDashboard();
@@ -21,6 +29,11 @@ async function setDone(item, isDone) {
       done: isDone ? "true" : "false"
     });
     if (!result.success) throw new Error(result.message);
+
+    // Purano Apps Script 'done' action chine na, shudhu "Running" bole
+    if (result.message !== "Updated") {
+      throw new Error("Server e save hoyni. Apps Script ke New version e Deploy korte hobe.");
+    }
   } catch (err) {
     item.done = before;
     updateDashboard();
